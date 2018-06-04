@@ -38,6 +38,7 @@ module.exports = {
         path: '../dev/node_modules/spocky',
         packages: [
             '../site',
+            '../dev/node_modules/spk-forms',
             '../dev/node_modules/spk-lemon-bee',
             '../dev/node_modules/spk-lemon-bee/node_modules/spk-messages'
         ],

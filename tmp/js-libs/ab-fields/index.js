@@ -1,31 +1,20 @@
 jsLibs.exportModule('ab-fields', 'index', (require, module) => { 'use strict';
 
-const
-    ListDefinition = require('./definitions/ListDefinition'),
-    ObjectDefinition = require('./definitions/ObjectDefinition'),
-    VarDefinition = require('./definitions/VarDefinition'),
+class abFields_Class
+{
 
-    ListField = require('./fields/ListField'),
-    ObjectField = require('./fields/ObjectField'),
-    VarField = require('./fields/VarField')
-;
+    get FieldDefinitions() {
+        return require('./FieldDefinitions');
+    }
 
-module.exports.Debug = false;
-module.exports.setDebug = function setDebug(debug) {
-    module.exports.Debug = debug;
-};
 
-module.exports.ListDefinition = ListDefinition;
-module.exports.ObjectDefinition = ObjectDefinition;
-module.exports.VarDefinition = VarDefinition;
+    define()
+    {
+        return new this.FieldDefinitions();
+    }
 
-module.exports.ListField = ListField;
-module.exports.ObjectField = ObjectField;
-module.exports.VarField = VarField;
-
-module.exports.define = function define() {
-    return new ObjectDefinition();
 }
+module.exports = new abFields_Class();
 
 
 

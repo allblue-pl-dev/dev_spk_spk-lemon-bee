@@ -3,17 +3,20 @@
 const 
     abPager = require('ab-pager'),
     js0 = require('js0'),
+    spkABForms = require('spk-forms'),
     spocky = require('spocky'),
 
     initLB = require('./initLB')
 ;
 
 
-export const spk = new spocky.Site();
-spk.config(($app, $cfg) => {
-    $cfg
-        .container('site', Site);
-});
+spocky.ext(new spkABForms.Ext());
+
+export const spk = new spocky.Site()
+    .config(($app, $cfg) => {
+        $cfg
+            .container('site', Site);
+    });
 
 export const $layouts = require('./$layouts');
 

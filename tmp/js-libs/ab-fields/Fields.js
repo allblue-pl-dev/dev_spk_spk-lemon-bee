@@ -7,38 +7,33 @@ const
 class Fields
 {
 
-    get root() {
-        return this._root;
-    }
-
-
     constructor(keys)
     {
         js0.args(arguments, Array);
 
         this._keys = keys;
 
-        this._fields = {};
+        this._vars = {};
+        this._objects = {};
+        this._lists = {};
 
         this._root = {};
     }
 
-    defList(fieldName, fieldDefinitions, listeners)
+    defList(fieldName, defsFn, listeners)
     {
-        this._fields[fieldName] = new Fields.List(this, fieldDefinitions, listeners);
+        this._lists[fieldName] = new Fields.List(this, defsFn, listeners);
     }
 
-    defObject(fieldName, fieldDefinitions, listeners)
+    defObject(fieldName)
     {
-        console.log(fieldName);
-        this._fields[fieldName] = new Fields.Object(this, fieldDefinitions, listeners, 
-                this._keys);
+        this._objects[fieldName] = {};
     }
 
     defVar(fieldName, listeners)
     {
-        if (!(fieldName in this._fields))
-            this._fields[fieldName] = new Fields.Var(this, listeners);
+        if (!(fieldName in this._vars))
+            this._vars[fieldName] = new Fields.Var(this, listeners);
 
         // this._vars[fieldName].addListener(listener);
     }
@@ -70,51 +65,55 @@ class Fields
         return [ root, fieldNameArr[fieldNameArr.length - 1] ];
     }
 
-    getField(fieldName)
+    getRoot()
     {
-        if (!(fieldName in this._fields))
-            throw new Error(`Field '${fieldName}' does not exist.`);
+        return this._root;
+    }
 
-        return this._fields[fieldName];
+    getVar(fieldName)
+    {
+        if (!(fieldName in this._vars))
+            throw new Error(`Fields var '${fieldName}' does not exist.`);
+
+        return this._vars[fieldName];
+    }
+
+    getList(fieldName)
+    {
+        if (!(fieldName in this._lists))
+            throw new Error(`Fields iterable '${fieldName}' does not exist.`);
+
+        return this._lists[fieldName];
+    }
+
+    getObject(fieldName)
+    {
+        if (!(fieldName in this._objects))
+            throw new Error(`Fields object '${fieldName}' does not exist.`);
+
+        return this._objects[fieldName];
     }
 
     setObject(fieldName, value)
     {
-        this._fields[fieldName].$set(value);
+
     }
 
     setList(fieldName, value)
     {
-        this._fields[fieldName].$set(value);
+        
     }
 
     setVar(fieldName, value)
     {
-        if (!(fieldName in this._fields))
+        if (!(fieldName in this._vars))
             throw new Error(`Fields var '${fieldName}' does not exist.`);
 
-        this._fields[fieldName].$set(value);
-    }
-
-    _validateField(fieldName)
-    {
-        if (fieldName in this._fields)
-            throw new Error(`Field '${fieldName}' already exists.`);
+        this._vars[fieldName].$set(value);
     }
 
 }
 module.exports = Fields;
-
-
-Object.defineProperty(Fields, 'Field', {
-value: class Fields_Field {
-
-    constructor()
-    {
-        
-    }
-
-}});
 
 
 Object.defineProperties(Fields, {
@@ -133,13 +132,8 @@ Object.defineProperties(Fields, {
             this._fieldDefinition = fieldDefinitions;
             this._listeners = listeners;
 
-            this._fieldsList = new Map();
+            this._fieldsList = new js0.List();
         }   
-
-        [Symbol.iterator]()
-        {
-            return new Fields.List.Iterator(this);
-        }
 
         $add(key)
         {
@@ -150,9 +144,9 @@ Object.defineProperties(Fields, {
 
             this._fieldsList.set(key, instanceFields);
 
-            for (let listener of this.__definition.listeners) {
+            for (let listener of this._listeners) {
                 if ('add' in listener)
-                    listener.add(key, this.__keys);
+                    listener.add(key, this._parentFields._keys);
             }
         }
 
@@ -166,15 +160,6 @@ Object.defineProperties(Fields, {
             return this._fieldsList.get(key);
         }
 
-        $pop()
-        {
-            if (this.$size <= 0)
-                throw new Error(`Cannot '$pop' on empty 'ListField.`);
-
-            let keys = this._fieldsList.keys();
-            this.$delete(keys[keys.length - 1]);
-        }
-
         $push()
         {
             let key = this.$size;
@@ -184,83 +169,12 @@ Object.defineProperties(Fields, {
             this.$add(key);
         }
 
-        $delete(key)
+        $remove(key)
         {
-            js0.args(arguments, [ 'number', 'string' ]);
+            this._fieldsList.remove(key);
 
-            if (!this._fieldsList.has(key))
-                throw new Error(`Key '${key}' does not exist in 'ListField'.`);
-
-            this._fieldsList.delete(key);
-
-            for (let listener of this._listeners) {
-                if ('delete' in listener)
-                    listener.delete(key, this._parentFields._keys);
-            }
-        }
-
-    }},
-
-    Object: { value:
-    class Fields_Object {
-
-        get $root() {
-            return this._fields.root;
-        }
-
-
-        constructor(parentFields, fieldDefinitions, listeners, keys)
-        {
-            this._parentFields = parentFields;
-            this._fieldDefinition = fieldDefinitions;
-            this._listeners = listeners;
-
-            this._fields = fieldDefinitions.createFields(keys);
-        }   
-
-        $delete(key)
-        {
-            js0.args(arguments, [ 'number', 'string' ]);
-
-            if (!this._fieldsList.has(key))
-                throw new Error(`Key '${key}' does not exist in 'ListField'.`);
-
-            delete fields[key];
-
-            for (let listener of this._listeners) {
-                if ('delete' in listener)
-                    listener.delete(key, this._parentFields._keys);
-            }
-        }
-
-        $get(key)
-        {
-            js0.args(arguments, [ 'number', 'string' ]);
-
-            if (!(key in this._fields))
-                throw new Error(`Field '${key}' does not exist in object.`);
-
-            return this._fields[key];
-        }
-
-        $set(value)
-        {
-            js0.args(arguments, 'object');
-
-            for (let key in value) {
-                if (key in this._fields.has(key))
-                    this._fields[key] = value[key];
-            }
-
-            // for (let listener of this._listeners) {
-            //     if ('set' in listener)
-            //         listener.add(key, this._parentFields._keys);
-            // }
-        }
-
-        $has(key)
-        {
-            return this._fieldsList.has(key);
+            if ('remove' in this._listeners)
+                this._listeners.set(key, this._parentFields._keys);
         }
 
     }},
@@ -284,41 +198,6 @@ Object.defineProperties(Fields, {
                 if ('set' in listener)
                     listener.set(value, this._parentFields._keys);
             }
-        }
-
-    }},
-
-});
-
-Object.defineProperties(Fields.List, {
-
-    Iterator: { value:
-    class Fields_List_Iterator {
-
-        constructor(list)
-        {
-            this._list = list;
-            this._keys = list._fieldsList.keys();
-            this._index = 0;
-            
-            // this._iterator = list._fieldsList[Symbol.iterator]();
-        }
-
-        next()
-        {
-            if (this._index >= this._keys.length)
-                return { value: undefined, done: true, };
-
-            let key = this._keys[this._index];
-
-            let result = {
-                value: [ key, this._list.$getFields(key).root(), ],
-                done: false,
-            };
-
-            this._index++;
-
-            return result;
         }
 
     }},

@@ -1,22 +1,41 @@
 jsLibs.exportModule('spocky', 'index', (require, module) => { 'use strict';
 
 const
-    abFields = require('ab-fields')
+    js0 = require('js0')
 ;
 
+const Ext = require('./Ext');
+const Layout = require('./Layout');
+const Module = require('./Module');
+const Site = require('./Site');
 
-module.exports.Debug = false;
-module.exports.setDebug = function setDebug(debug) {
+
+const exts = [];
+
+function ext(spockyExt) {
+    js0.args(arguments, Ext);
+
+    Layout.Parser.extend((nodeElement) => {
+        spockyExt.onParseNodeElement(nodeElement);
+    });
+}
+
+
+const Debug = false;
+function setDebug(debug) {
     module.exports.Debug = debug;
     abFields.setDebug(debug);
 };
 
-module.exports.Layout = require('./Layout');
-module.exports.Module = require('./Module');
-module.exports.Site = require('./Site');
 
 
 
 
-
+module.exports.Ext = Ext;
+module.exports.Layout = Layout;
+module.exports.Module = Module;
+module.exports.Site = Site;
+module.exports.ext = ext;
+module.exports.Debug = Debug;
+module.exports.setDebug = setDebug;
  });

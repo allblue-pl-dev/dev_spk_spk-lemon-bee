@@ -461,7 +461,7 @@ class LayoutParser extends abLayouts.Parser
     /* abLayouts.Parser Overrides */
     __afterParse()
     {
-        this._fields = this._fieldDefinitions.create();
+        this._fields = this._fieldDefinitions.createFields();
     }
     
     __beforeParse()
